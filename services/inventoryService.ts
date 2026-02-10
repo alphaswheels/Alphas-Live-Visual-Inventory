@@ -184,12 +184,12 @@ export const fetchInventory = async (
       let name = getVal(idxDetails);
       
       // SPECIFIC CLEANUP: 
-      // 1. Remove "( FLOW FORMING )" ONLY if it is separated by whitespace or at start of line (standalone).
-      //    Matches: "Wheel (FLOW FORMING)", "(FLOW FORMING)", " (FLOW FORMING )"
-      //    Ignored: "Wheel(FLOWFORMING)"
+      // 1. Remove "( FLOW FORMING )" tag
       name = name.replace(/(^|\s+)\(\s*FLOW\s*FORMING\s*\)/gi, ' ');
+      // 2. Remove "( new arrive )" tag to clean up display
+      name = name.replace(/(^|\s+)\(\s*new\s*arrive\s*\)/gi, ' ');
       
-      // 2. Normalize whitespace (fix double spaces created by removal) and trim
+      // Normalize whitespace
       name = name.replace(/\s+/g, ' ').trim();
       
       // Determine ID Logic:
@@ -288,6 +288,26 @@ export const fetchInventory = async (
       // Explicit request to hide items that are likely headers like "Audi Fitment", "BMW Fitment"
       if (item.name.toLowerCase().includes('fitment')) {
         return false;
+      }
+
+      // 4. Header Row / Metadata Filter
+      // Detects rows that are likely repeated headers from the sheet or empty spacer rows
+      const lowerId = item.id.toLowerCase().trim();
+      const lowerName = item.name.toLowerCase().trim();
+      
+      const headerKeywords = [
+          'part #', 'part number', 'sku', 'part no.', 
+          'item id', 'id', 'description', 'desc', 'qty', 'quantity'
+      ];
+      
+      // If ID or Name exactly matches a header keyword, it's likely a header row
+      if (headerKeywords.includes(lowerId) || headerKeywords.includes(lowerName)) {
+         return false;
+      }
+      
+      // If Name contains "description" and Quantity is 0, it's a header
+      if (lowerName.includes('description') && item.quantity === 0) {
+          return false;
       }
 
       return true;

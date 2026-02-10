@@ -281,13 +281,25 @@ const App: React.FC = () => {
             <ModelRibbon 
               models={uniqueModels}
               selectedModel={selectedModel}
-              onSelectModel={setSelectedModel}
+              onSelectModel={(model) => {
+                  setSelectedModel(model);
+                  // Also clear search when a model is selected to avoid confusion
+                  if (model) {
+                    setSearchQuery('');
+                    setMultiIds([]);
+                  }
+              }}
             />
 
             <SearchControls 
               onSearch={(q, ids) => {
                 setSearchQuery(q);
                 setMultiIds(ids);
+                // Force reset filters if search is active to ensure we search ALL items
+                if (q.trim().length > 0 || ids.length > 0) {
+                    setQuickFilter('ALL');
+                    setSelectedModel(null);
+                }
               }}
               onRefresh={() => loadData(true)}
               isSyncing={syncing}
