@@ -210,9 +210,11 @@ const App: React.FC = () => {
 
   const displayedItems = useMemo(() => {
     // In Sheet Mode, we render everything at once to allow Ctrl+F and full visibility
-    if (viewMode === 'sheet') return filteredItems;
+    // User requested to bypass filters in sheet mode to always show all items
+    if (viewMode === 'sheet') return accessibleItems;
+    
     return filteredItems.slice(0, visibleCount);
-  }, [filteredItems, visibleCount, viewMode]);
+  }, [filteredItems, accessibleItems, visibleCount, viewMode]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -323,14 +325,16 @@ const App: React.FC = () => {
                  <div className="flex justify-between items-end mb-4 flex-wrap gap-2">
                     <div className="flex items-center gap-3">
                       <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        {isSearchActive 
-                          ? `Search Results (${filteredItems.length})` 
-                          : isFilterActive
-                            ? `${quickFilter !== 'ALL' ? (quickFilter === 'LOW' ? 'Low Stock' : 'Out of Stock') : selectedModel || 'Filtered'} Items (${filteredItems.length})`
-                            : `All Items (${accessibleItems.length})`
+                        {viewMode === 'sheet'
+                          ? `Full Inventory Sheet (${accessibleItems.length})`
+                          : isSearchActive 
+                            ? `Search Results (${filteredItems.length})` 
+                            : isFilterActive
+                              ? `${quickFilter !== 'ALL' ? (quickFilter === 'LOW' ? 'Low Stock' : 'Out of Stock') : selectedModel || 'Filtered'} Items (${filteredItems.length})`
+                              : `All Items (${accessibleItems.length})`
                         }
                       </h2>
-                      {isFilterActive && (
+                      {isFilterActive && viewMode !== 'sheet' && (
                          <button 
                             onClick={() => {
                               handleStatFilter('ALL');
@@ -345,7 +349,7 @@ const App: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      {filteredItems.length > 0 && (
+                      {(viewMode === 'sheet' ? accessibleItems.length > 0 : filteredItems.length > 0) && (
                         <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
                           <button 
                             onClick={() => setViewMode('grid')}
@@ -373,7 +377,7 @@ const App: React.FC = () => {
                     </div>
                  </div>
 
-                 {filteredItems.length > 0 ? (
+                 {(viewMode === 'sheet' ? accessibleItems.length > 0 : filteredItems.length > 0) ? (
                     <>
                         {viewMode === 'grid' ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -513,7 +517,7 @@ const App: React.FC = () => {
       <ErrorBoundary>
         <Suspense fallback={null}>
           <AssistantPanel 
-              items={filteredItems} 
+              items={viewMode === 'sheet' ? accessibleItems : filteredItems} 
               isOpen={isAssistantOpen} 
               onToggle={() => setAssistantOpen(!isAssistantOpen)} 
           />
