@@ -11,9 +11,10 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   public static getDerivedStateFromError(_: Error): State {
     return { hasError: true };
@@ -25,7 +26,9 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
       return (
         <div className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200 flex items-center gap-2">
            <AlertTriangle size={16} />

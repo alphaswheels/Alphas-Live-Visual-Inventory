@@ -142,7 +142,7 @@ const App: React.FC = () => {
 
   const stats: InventoryStats = useMemo(() => calculateStats(accessibleItems), [accessibleItems]);
 
-  // 3. Apply Search & Filtering
+  // 3. Apply Search & Filtering (Result is filtered but NOT sorted yet)
   const filteredItems = useMemo(() => {
     let result = accessibleItems;
     
@@ -187,34 +187,41 @@ const App: React.FC = () => {
       }
     }
 
-    // Sort logic - Skip sorting in Sheet Mode to preserve original sheet order
-    if (sortField && viewMode !== 'sheet') {
-      result = [...result].sort((a, b) => {
-        let valA = a[sortField];
-        let valB = b[sortField];
-
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-        if (valA === undefined) return 1;
-        if (valB === undefined) return -1;
-
-        if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-        if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
     return result;
-  }, [accessibleItems, searchQuery, multiIds, sortField, sortOrder, quickFilter, selectedModel, viewMode]);
+  }, [accessibleItems, searchQuery, multiIds, quickFilter, selectedModel]);
 
+  // 4. Apply Sorting (Handles both Sheet Mode and Normal Mode sources)
+  const sortedItems = useMemo(() => {
+    // Determine the source data based on view mode
+    // Sheet Mode: Bypass filters, use accessibleItems (ALL items)
+    // Other Modes: Use filteredItems
+    const sourceData = viewMode === 'sheet' ? accessibleItems : filteredItems;
+    
+    if (!sortField) return sourceData;
+
+    return [...sourceData].sort((a, b) => {
+      let valA = a[sortField];
+      let valB = b[sortField];
+
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+
+      if (valA === undefined) return 1;
+      if (valB === undefined) return -1;
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [accessibleItems, filteredItems, viewMode, sortField, sortOrder]);
+
+  // 5. Pagination / Display Logic
   const displayedItems = useMemo(() => {
     // In Sheet Mode, we render everything at once to allow Ctrl+F and full visibility
-    // User requested to bypass filters in sheet mode to always show all items
-    if (viewMode === 'sheet') return accessibleItems;
+    if (viewMode === 'sheet') return sortedItems;
     
-    return filteredItems.slice(0, visibleCount);
-  }, [filteredItems, accessibleItems, visibleCount, viewMode]);
+    return sortedItems.slice(0, visibleCount);
+  }, [sortedItems, visibleCount, viewMode]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -227,7 +234,7 @@ const App: React.FC = () => {
     );
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [filteredItems, viewMode]);
+  }, [sortedItems, viewMode]);
   
   const isSearchActive = searchQuery.trim().length > 0 || multiIds.length > 0;
   const isFilterActive = quickFilter !== 'ALL' || selectedModel !== null;
@@ -467,16 +474,22 @@ const App: React.FC = () => {
                                 <table className="w-full text-left text-sm font-mono table-fixed md:table-auto">
                                   <thead className="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase tracking-wider text-xs">
                                     <tr>
-                                      <th className="px-4 py-2 border-r border-slate-200/50 w-[30%] md:w-auto">Part Number</th>
-                                      <th className="px-4 py-2 border-r border-slate-200/50 w-[55%] md:w-auto">Description</th>
-                                      <th className="px-4 py-2 text-right w-[15%] md:w-auto">QTY</th>
+                                      <th className="px-4 py-2 border-r border-slate-200/50 w-[30%] md:w-auto cursor-pointer hover:bg-slate-200 transition-colors" onClick={() => handleSort('id')}>
+                                          <div className="flex items-center gap-1">Part Number {sortField === 'id' && (sortOrder === 'asc' ? <ArrowUp size={12}/> : <ArrowDown size={12}/>)}</div>
+                                      </th>
+                                      <th className="px-4 py-2 border-r border-slate-200/50 w-[55%] md:w-auto cursor-pointer hover:bg-slate-200 transition-colors" onClick={() => handleSort('name')}>
+                                          <div className="flex items-center gap-1">Description {sortField === 'name' && (sortOrder === 'asc' ? <ArrowUp size={12}/> : <ArrowDown size={12}/>)}</div>
+                                      </th>
+                                      <th className="px-4 py-2 text-right w-[15%] md:w-auto cursor-pointer hover:bg-slate-200 transition-colors" onClick={() => handleSort('quantity')}>
+                                          <div className="flex items-center justify-end gap-1">QTY {sortField === 'quantity' && (sortOrder === 'asc' ? <ArrowUp size={12}/> : <ArrowDown size={12}/>)}</div>
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-slate-100">
                                     {displayedItems.map((item, idx) => (
                                       <tr key={item.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50 transition-colors`}>
-                                        <td className="px-4 py-1.5 font-bold text-slate-700 break-all md:whitespace-nowrap border-r border-slate-100 align-top">
-                                            {item.sku || item.id}
+                                        <td className="px-4 py-1.5 border-r border-slate-100 align-top">
+                                            <PartNumber id={item.sku || item.id} className="text-xs bg-transparent hover:bg-blue-100 px-1 py-0.5 text-slate-700" />
                                         </td>
                                         <td className="px-4 py-1.5 text-slate-600 break-words border-r border-slate-100 align-top" title={item.name}>
                                             {item.name}
@@ -492,7 +505,7 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {viewMode !== 'sheet' && visibleCount < filteredItems.length && (
+                        {viewMode !== 'sheet' && visibleCount < sortedItems.length && (
                             <div ref={loaderRef} className="py-8 flex flex-col items-center justify-center text-slate-400">
                                <Loader2 className="w-6 h-6 animate-spin mb-2" />
                                <span className="text-xs font-medium">Loading more items...</span>
