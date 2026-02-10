@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, Suspense, useRef, useCallback } from 'react';
 import { InventoryItem, InventoryStats, ColumnMapping, SortField, SortOrder } from './types';
 import { fetchInventory, calculateStats } from './services/inventoryService';
-import { supabaseService } from './services/supabaseService';
 import SearchControls from './components/SearchControls';
 import InventoryCard from './components/InventoryCard';
 import PartNumber from './components/PartNumber';
@@ -10,7 +9,7 @@ import SettingsModal from './components/SettingsModal';
 import ModelRibbon from './components/ModelRibbon';
 import { 
   AlertCircle, Package, LayoutGrid, List, Table,
-  Database, ArrowUp, ArrowDown, FilterX, Loader2, ImagePlus, Shield, Upload
+  Database, ArrowUp, ArrowDown, FilterX, Loader2, ImagePlus, Shield
 } from 'lucide-react';
 
 // Lazy load the assistant to improve initial load time
@@ -38,43 +37,9 @@ const App: React.FC = () => {
     }
   });
   
-  // Supabase Data State
-  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
-
   useEffect(() => { 
     localStorage.setItem('isAdmin', String(isAdmin)); 
   }, [isAdmin]);
-
-  // Initial Load of Supabase Overrides
-  useEffect(() => {
-    const loadOverrides = async () => {
-      try {
-        const overrides = await supabaseService.getOverrides();
-        const hidden = overrides.filter(o => o.is_hidden).map(o => o.id);
-        const images = overrides.reduce((acc, curr) => {
-          if (curr.product_image) acc[curr.id] = curr.product_image;
-          return acc;
-        }, {} as Record<string, string>);
-        
-        setHiddenIds(hidden);
-        setImageOverrides(images);
-      } catch (e) {
-        console.error("Failed to load overrides from Supabase", e);
-      }
-    };
-    loadOverrides();
-  }, []);
-
-  const handleImageUpload = useCallback(async (id: string, file: File) => {
-    try {
-      const publicUrl = await supabaseService.uploadImage(id, file);
-      setImageOverrides(prev => ({ ...prev, [id]: publicUrl }));
-    } catch (e) {
-      console.error("Supabase image upload failed", e);
-      alert("Failed to upload image. Please try again.");
-    }
-  }, []);
 
   // Mapping State
   const [showSettings, setShowSettings] = useState(false);
@@ -165,15 +130,10 @@ const App: React.FC = () => {
 
   // --- Data Processing Pipeline ---
 
-  // 1. Apply Overrides & Visibility Rules
-  const accessibleItems = useMemo(() => {
-    return items.map(item => ({
-      ...item,
-      imageUrl: imageOverrides[item.id] || item.imageUrl
-    })).filter(item => !hiddenIds.includes(item.id)); // Hide items in hiddenIds for everyone
-  }, [items, hiddenIds, imageOverrides]);
+  // 1. Data passed through (Supabase overrides removed)
+  const accessibleItems = items;
 
-  // 2. Compute Derived Data from Accessible Items
+  // 2. Compute Derived Data
   const uniqueModels = useMemo(() => {
     const models = new Set(accessibleItems.map(i => i.category).filter(c => c && c !== 'Uncategorized'));
     return Array.from(models).sort();
@@ -269,28 +229,13 @@ const App: React.FC = () => {
   const isSearchActive = searchQuery.trim().length > 0 || multiIds.length > 0;
   const isFilterActive = quickFilter !== 'ALL' || selectedModel !== null;
 
-  const renderAdminImageCell = (item: InventoryItem) => {
+  const renderImageCell = (item: InventoryItem) => {
     return (
-      <div className={`w-10 h-10 rounded bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group cursor-pointer`}>
+      <div className={`w-10 h-10 rounded bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group`}>
           {item.imageUrl ? (
               <img src={item.imageUrl} className="w-full h-full object-contain p-1" />
           ) : (
               <ImagePlus size={16} className="text-slate-300" />
-          )}
-          {isAdmin && (
-            <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-              <Upload size={16} className="text-white" />
-              <input 
-                type="file" 
-                accept="image/*"
-                className="hidden" 
-                onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        handleImageUpload(item.id, e.target.files[0]);
-                    }
-                }}
-              />
-            </label>
           )}
       </div>
     );
@@ -424,7 +369,6 @@ const App: React.FC = () => {
                                 key={item.id} 
                                 item={item} 
                                 isAdmin={isAdmin}
-                                onUploadImage={(file) => handleImageUpload(item.id, file)}
                               />
                             ))}
                           </div>
@@ -481,7 +425,7 @@ const App: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="hidden md:table-cell px-6 py-4">
-                                            {renderAdminImageCell(item)}
+                                            {renderImageCell(item)}
                                         </td>
                                         <td className="hidden md:table-cell px-6 py-4 text-center">
                                             <span className={`px-2 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${

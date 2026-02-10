@@ -1,21 +1,17 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { InventoryItem } from '../types';
-import { MapPin, ImageOff, Layers, Calendar, ImagePlus, Upload } from 'lucide-react';
+import { MapPin, ImageOff, Layers, Calendar } from 'lucide-react';
 import PartNumber from './PartNumber';
 
 interface InventoryCardProps {
   item: InventoryItem;
   isAdmin?: boolean;
-  onUploadImage?: (file: File) => void;
 }
 
 const InventoryCard: React.FC<InventoryCardProps> = React.memo(({ 
   item, 
-  isAdmin = false, 
-  onUploadImage 
+  isAdmin = false
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const statusColors = {
     'In Stock': 'bg-green-100 text-green-700 border-green-200',
     'Low Stock': 'bg-amber-100 text-amber-700 border-amber-200',
@@ -23,18 +19,6 @@ const InventoryCard: React.FC<InventoryCardProps> = React.memo(({
   }[item.status];
 
   const containerClass = 'bg-white border-slate-200';
-
-  const handleImageClick = () => {
-    if (isAdmin && onUploadImage && fileInputRef.current) {
-        fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && onUploadImage) {
-        onUploadImage(e.target.files[0]);
-    }
-  };
 
   return (
     <div className={`${containerClass} rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col h-full group relative border`}>
@@ -55,31 +39,11 @@ const InventoryCard: React.FC<InventoryCardProps> = React.memo(({
 
         {/* Image & Main Info */}
         <div className="flex gap-4 mb-4">
-           <div 
-             onClick={handleImageClick}
-             className={`w-20 h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group/image ${isAdmin ? 'cursor-pointer hover:border-blue-300' : ''}`}
-           >
+           <div className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group/image">
              {item.imageUrl ? (
                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain mix-blend-multiply p-1" />
              ) : (
                <ImageOff size={20} className="text-slate-300" />
-             )}
-
-             {/* Admin Tap-to-Upload Overlay */}
-             {isAdmin && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity">
-                   <Upload size={20} className="text-white drop-shadow-md" />
-                </div>
-             )}
-             
-             {isAdmin && (
-                <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleFileChange}
-                />
              )}
            </div>
            
