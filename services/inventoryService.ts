@@ -59,16 +59,21 @@ export const fetchInventory = async (
     let fetchSuccess = false;
 
     // Strategy 1: Try local Vercel API (Best for production/CORS)
-    // If the API route doesn't exist (local static serve), this throws or returns 404
     try {
         const response = await fetch(`/api/inventory?sheetId=${sheetId}`, {
             method: 'GET',
             headers: { 'Accept': 'text/csv' }
         });
 
-        if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        
+        // CRITICAL CHECK: If we get HTML back, the API route failed or was rewritten to index.html
+        if (response.ok && contentType && !contentType.includes('text/html')) {
             text = await response.text();
-            if (text && text.length > 0) fetchSuccess = true;
+            // Double check it doesn't look like an HTML doctype
+            if (text && text.length > 0 && !text.trim().toLowerCase().startsWith('<!doctype')) {
+                fetchSuccess = true;
+            }
         }
     } catch (e) {
         console.warn("API fetch failed, falling back...", e);
