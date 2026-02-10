@@ -290,7 +290,13 @@ export const fetchInventory = async (
         return false;
       }
 
-      // 4. Header Row / Metadata Filter
+      // 4. "Highoffset" Filter
+      // Explicit request to hide items/headers containing "(Highoffset)" in part number or ID
+      if ((item.partNumber && item.partNumber.toLowerCase().includes('(highoffset)')) || item.id.toLowerCase().includes('(highoffset)')) {
+        return false;
+      }
+
+      // 5. Header Row / Metadata Filter
       // Detects rows that are likely repeated headers from the sheet or empty spacer rows
       const lowerId = item.id.toLowerCase().trim();
       const lowerName = item.name.toLowerCase().trim();
