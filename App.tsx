@@ -7,6 +7,7 @@ import PartNumber from './components/PartNumber';
 import StatsPanel from './components/StatsPanel';
 import SettingsModal from './components/SettingsModal';
 import ModelRibbon from './components/ModelRibbon';
+import ErrorBoundary from './components/ErrorBoundary';
 import { 
   AlertCircle, Package, LayoutGrid, List, Table,
   Database, ArrowUp, ArrowDown, FilterX, Loader2, ImagePlus, Shield
@@ -497,13 +498,15 @@ const App: React.FC = () => {
         </main>
       </div>
 
-      <Suspense fallback={null}>
-        <AssistantPanel 
-            items={filteredItems} 
-            isOpen={isAssistantOpen} 
-            onToggle={() => setAssistantOpen(!isAssistantOpen)} 
-        />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          <AssistantPanel 
+              items={filteredItems} 
+              isOpen={isAssistantOpen} 
+              onToggle={() => setAssistantOpen(!isAssistantOpen)} 
+          />
+        </Suspense>
+      </ErrorBoundary>
 
       <SettingsModal 
          isOpen={showSettings}
