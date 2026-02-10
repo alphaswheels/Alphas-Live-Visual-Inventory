@@ -17,7 +17,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // Polyfill process.env for client-side usage of the Google GenAI SDK
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
+      // Use fallback to empty string to prevent crashes if key is missing
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || '')
     }
   };
 });

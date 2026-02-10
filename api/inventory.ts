@@ -6,12 +6,14 @@ export default async function handler(request: Request) {
   const url = new URL(request.url);
   const sheetId = url.searchParams.get('sheetId');
   
+  // CORS Headers for client-side access
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept',
   };
 
+  // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
@@ -30,9 +32,7 @@ export default async function handler(request: Request) {
   const fetchOptions = {
     headers: {
       'User-Agent': 'VisualInventory/1.0',
-    },
-    // Next.js specific cache tag (ignored in standard fetch but good for Vercel)
-    next: { revalidate: 30 } 
+    }
   };
 
   const successHeaders = {
@@ -63,7 +63,7 @@ export default async function handler(request: Request) {
     console.error('Export fetch failed:', e);
   }
 
-  return new Response(JSON.stringify({ error: 'Failed to retrieve inventory sheet' }), {
+  return new Response(JSON.stringify({ error: 'Failed to retrieve inventory sheet. Ensure it is public or the link is correct.' }), {
     status: 502,
     headers: { 'Content-Type': 'application/json', ...corsHeaders }
   });
