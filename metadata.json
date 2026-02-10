@@ -1,0 +1,5 @@
+{
+  "name": "Live-Visual-Inventory-V4-Vercel-1",
+  "description": "A real-time visual inventory lookup system integrated with Google Sheets, featuring multiple part number search and Gemini AI insights.",
+  "requestFramePermissions": []
+}
