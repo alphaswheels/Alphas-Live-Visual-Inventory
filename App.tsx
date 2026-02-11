@@ -387,7 +387,7 @@ const App: React.FC = () => {
                  {(viewMode === 'sheet' ? accessibleItems.length > 0 : filteredItems.length > 0) ? (
                     <>
                         {viewMode === 'grid' ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          <div key="grid-view" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {displayedItems.map((item) => (
                               <InventoryCard 
                                 key={item.id} 
@@ -397,7 +397,7 @@ const App: React.FC = () => {
                             ))}
                           </div>
                         ) : viewMode === 'list' ? (
-                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div key="list-view" className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
                               <table className="w-full text-left text-sm table-fixed md:table-auto">
                                   <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
@@ -469,7 +469,7 @@ const App: React.FC = () => {
                           </div>
                         ) : (
                             // Sheet Mode (Raw Table)
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div key="sheet-view" className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                               <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm font-mono table-fixed md:table-auto">
                                   <thead className="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase tracking-wider text-xs">
