@@ -292,9 +292,9 @@ const App: React.FC = () => {
         <header 
           className={`
             bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 shadow-sm
-            transition-all duration-300 ease-in-out
-            ${!showHeader ? '-mt-[80px] opacity-0 pointer-events-none' : 'mt-0 opacity-100'}
-            md:mt-0 md:opacity-100 md:pointer-events-auto
+            transition-transform duration-300 ease-in-out
+            ${!showHeader ? '-translate-y-full' : 'translate-y-0'}
+            md:translate-y-0
           `}
         >
            <div className="flex items-center gap-3">
@@ -486,12 +486,7 @@ const App: React.FC = () => {
                                         </td>
                                         <td className="px-2 py-3 md:px-6 md:py-4 text-right align-top md:align-middle">
                                             <div className={`font-bold text-base md:text-lg leading-snug ${item.quantity < 4 ? 'text-amber-600' : 'text-slate-700'}`}>{item.quantity}</div>
-                                            {/* Mobile Location Under Quantity */}
-                                            <div className="md:hidden mt-1 flex justify-end">
-                                                <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 break-all text-right max-w-full">
-                                                    {item.location || "N/A"}
-                                                </span>
-                                            </div>
+                                            {/* Location removed from mobile/tablet view */}
                                         </td>
                                         <td className="hidden md:table-cell px-6 py-4">
                                             {renderImageCell(item)}
