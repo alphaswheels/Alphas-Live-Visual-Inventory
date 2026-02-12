@@ -74,9 +74,7 @@ const App: React.FC = () => {
   const loaderRef = useRef<HTMLDivElement>(null);
 
   // Scroll / Header State
-  const [showHeader, setShowHeader] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const lastScrollY = useRef(0);
   const mainRef = useRef<HTMLElement>(null);
 
   const loadData = async (isBackground = false) => {
@@ -125,24 +123,10 @@ const App: React.FC = () => {
     setMultiIds([]);
   }, []);
 
-  // Handle scroll to hide/show header on mobile and toggle Back to Top
+  // Handle scroll for Back to Top visibility
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
-    
-    // Back to top visibility
     setShowBackToTop(currentScrollY > 400);
-
-    // Buffer to prevent jitter for header
-    if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
-
-    // Always show header at top
-    if (currentScrollY < 20) {
-      setShowHeader(true);
-    } else {
-      // Show if scrolling UP, Hide if scrolling DOWN
-      setShowHeader(currentScrollY < lastScrollY.current);
-    }
-    lastScrollY.current = currentScrollY;
   };
 
   useEffect(() => {
@@ -282,12 +266,7 @@ const App: React.FC = () => {
       <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300`}>
         
         <header 
-          className={`
-            bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 
-            transition-all duration-300 ease-in-out
-            ${!showHeader ? '-mt-[74px] opacity-0 pointer-events-none' : 'mt-0 opacity-100'}
-            md:mt-0 md:opacity-100 md:pointer-events-auto
-          `}
+          className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 shadow-sm"
         >
            <div className="flex items-center gap-3">
              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm transition-colors ${isAdmin ? 'bg-slate-800 shadow-slate-300' : 'bg-blue-600 shadow-blue-200'}`}>
