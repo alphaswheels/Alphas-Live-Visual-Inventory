@@ -31,16 +31,11 @@ const SearchControls: React.FC<SearchControlsProps> = ({ onSearch, onRefresh, is
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400"></div>
       
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
             <div className="bg-blue-100 p-1.5 rounded-lg text-blue-600">
                <Search size={20} />
             </div>
             <h2 className="text-xl font-bold text-slate-900">Inventory Lookup</h2>
-          </div>
-          <p className="text-xs text-slate-500 mt-1 pl-1">
-             Type multiple IDs, names, or scan barcodes to search instantly.
-          </p>
         </div>
         
         <div className="flex items-center gap-3 self-end sm:self-auto">
@@ -60,7 +55,7 @@ const SearchControls: React.FC<SearchControlsProps> = ({ onSearch, onRefresh, is
       <div className="animate-in fade-in duration-200">
          <div className="relative">
              <textarea
-              placeholder="Start typing to search..."
+              placeholder="Type SKUs, or Model number to search..."
               className="w-full px-4 py-4 min-h-[80px] sm:min-h-[100px] bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-800 text-base placeholder:text-slate-400 resize-y shadow-inner"
               value={multiText}
               onChange={(e) => setMultiText(e.target.value)}

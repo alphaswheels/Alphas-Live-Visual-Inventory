@@ -170,7 +170,7 @@ export const fetchInventory = async (
     const idxLoc = headers.findIndex(h => ['loc', 'bin', 'shelf', 'warehouse'].some(k => h.includes(k)));
     const idxPrice = headers.findIndex(h => ['price', 'cost', 'msrp'].some(k => h.includes(k)));
 
-    const items: InventoryItem[] = lines.slice(1).map((line) => {
+    const items: InventoryItem[] = lines.slice(1).map((line, index) => {
       const cols = parseCSVLine(line);
       
       const getVal = (idx: number) => (idx > -1 && idx < cols.length) ? cols[idx].trim() : '';
@@ -251,6 +251,7 @@ export const fetchInventory = async (
 
       return {
         id,
+        uniqueId: `${id}_${index}`, // Combine ID with row index to ensure uniqueness for React keys
         sku,
         partNumber,
         name,

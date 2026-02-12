@@ -1,5 +1,6 @@
 export interface InventoryItem {
   id: string; // Primary Key (Defaults to SKU)
+  uniqueId: string; // Internal Unique ID for React Rendering (handles duplicates)
   sku: string; // Mapped SKU
   partNumber: string; // Mapped Part Number
   name: string; // Description/Product Details

@@ -73,6 +73,10 @@ const App: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(60);
   const loaderRef = useRef<HTMLDivElement>(null);
 
+  // Scroll / Header State
+  const [showHeader, setShowHeader] = useState(true);
+  const lastScrollY = useRef(0);
+
   const loadData = async (isBackground = false) => {
     if (isBackground) setSyncing(true);
     else setLoading(true);
@@ -118,6 +122,23 @@ const App: React.FC = () => {
     setSearchQuery('');
     setMultiIds([]);
   }, []);
+
+  // Handle scroll to hide/show header on mobile
+  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    
+    // Buffer to prevent jitter
+    if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
+
+    // Always show at top
+    if (currentScrollY < 20) {
+      setShowHeader(true);
+    } else {
+      // Show if scrolling UP, Hide if scrolling DOWN
+      setShowHeader(currentScrollY < lastScrollY.current);
+    }
+    lastScrollY.current = currentScrollY;
+  };
 
   useEffect(() => {
     loadData();
@@ -255,7 +276,14 @@ const App: React.FC = () => {
     <div className={`flex h-screen bg-slate-50 overflow-hidden relative font-sans text-slate-900 ${isAdmin ? 'border-t-4 border-slate-900' : ''}`}>
       <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300`}>
         
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0">
+        <header 
+          className={`
+            bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 
+            transition-all duration-300 ease-in-out
+            ${!showHeader ? '-mt-[74px] opacity-0 pointer-events-none' : 'mt-0 opacity-100'}
+            md:mt-0 md:opacity-100 md:pointer-events-auto
+          `}
+        >
            <div className="flex items-center gap-3">
              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm transition-colors ${isAdmin ? 'bg-slate-800 shadow-slate-300' : 'bg-blue-600 shadow-blue-200'}`}>
                {isAdmin ? <Shield size={22} /> : <Package size={22} />}
@@ -277,7 +305,10 @@ const App: React.FC = () => {
            </button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-32">
+        <main 
+          className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-32"
+          onScroll={handleScroll}
+        >
           <div className="max-w-7xl mx-auto">
             
             <StatsPanel 
@@ -390,7 +421,7 @@ const App: React.FC = () => {
                           <div key="grid-view" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {displayedItems.map((item) => (
                               <InventoryCard 
-                                key={item.id} 
+                                key={item.uniqueId} 
                                 item={item} 
                                 isAdmin={isAdmin}
                               />
@@ -415,7 +446,7 @@ const App: React.FC = () => {
                                   </thead>
                                   <tbody className="divide-y divide-slate-100">
                                     {displayedItems.map((item) => (
-                                      <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                                      <tr key={item.uniqueId} className="hover:bg-slate-50 transition-colors">
                                         <td className="pl-4 pr-2 py-3 md:px-6 md:py-4 align-top md:align-middle">
                                             <div className="font-bold text-slate-900 text-sm md:text-base mb-1 md:mb-1.5 leading-snug break-words hyphens-auto">
                                                 {item.name}
@@ -487,7 +518,7 @@ const App: React.FC = () => {
                                   </thead>
                                   <tbody className="divide-y divide-slate-100">
                                     {displayedItems.map((item, idx) => (
-                                      <tr key={item.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50 transition-colors`}>
+                                      <tr key={item.uniqueId} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50 transition-colors`}>
                                         <td className="px-4 py-1.5 border-r border-slate-100 align-top">
                                             <PartNumber id={item.sku || item.id} className="text-xs bg-transparent hover:bg-blue-100 px-1 py-0.5 text-slate-700" />
                                         </td>
