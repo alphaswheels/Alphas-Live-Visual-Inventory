@@ -295,7 +295,7 @@ const App: React.FC = () => {
              </div>
              <div>
                 <h1 className="text-xl font-bold text-slate-800 tracking-tight leading-none">
-                  VisualInventory {isAdmin && <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-mono">ADMIN</span>}
+                  Live Visual Inventory {isAdmin && <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-mono">ADMIN</span>}
                 </h1>
                 <span className="text-xs text-slate-500 font-medium">Real-time Dashboard</span>
              </div>
@@ -447,7 +447,7 @@ const App: React.FC = () => {
                                         </th>
                                         <th className="hidden md:table-cell px-6 py-4 w-24">Image</th>
                                         <th className="hidden md:table-cell px-6 py-4 text-center w-32">Status</th>
-                                        <th className="hidden lg:table-cell px-6 py-4 w-32">Location</th>
+                                        {/* Location column removed */}
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-slate-100">
@@ -497,7 +497,7 @@ const App: React.FC = () => {
                                                 {item.status}
                                             </span>
                                         </td>
-                                        <td className="hidden lg:table-cell px-6 py-4 text-slate-600 font-mono text-sm whitespace-nowrap">{item.location}</td>
+                                        {/* Location cell removed */}
                                       </tr>
                                     ))}
                                   </tbody>
@@ -549,8 +549,8 @@ const App: React.FC = () => {
                             </div>
                         )}
                         
-                        {/* Back to Top Button for Sheet Mode */}
-                        {viewMode === 'sheet' && showBackToTop && (
+                        {/* Back to Top Button for Sheet and List Mode */}
+                        {(viewMode === 'sheet' || viewMode === 'list') && showBackToTop && (
                             <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
                                 <button 
                                     onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
