@@ -287,14 +287,14 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex h-screen bg-slate-50 overflow-hidden relative font-sans text-slate-900 ${isAdmin ? 'border-t-4 border-slate-900' : ''}`}>
-      <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300`}>
+      <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
         
         <header 
           className={`
-            bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 shadow-sm
+            bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-30 shadow-sm
             transition-transform duration-300 ease-in-out
+            absolute top-0 left-0 right-0 md:relative md:translate-y-0
             ${!showHeader ? '-translate-y-full' : 'translate-y-0'}
-            md:translate-y-0
           `}
         >
            <div className="flex items-center gap-3">
@@ -320,10 +320,10 @@ const App: React.FC = () => {
 
         <main 
           ref={mainRef}
-          className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-32"
+          className="flex-1 overflow-y-auto px-4 pb-4 pt-24 md:p-8 scroll-smooth"
           onScroll={handleScroll}
         >
-          <div className="max-w-7xl mx-auto relative">
+          <div className="max-w-7xl mx-auto relative pb-32">
             
             <StatsPanel 
               stats={stats} 
