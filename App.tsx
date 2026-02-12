@@ -75,7 +75,9 @@ const App: React.FC = () => {
 
   // Scroll / Header State
   const [showHeader, setShowHeader] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const lastScrollY = useRef(0);
+  const mainRef = useRef<HTMLElement>(null);
 
   const loadData = async (isBackground = false) => {
     if (isBackground) setSyncing(true);
@@ -123,14 +125,17 @@ const App: React.FC = () => {
     setMultiIds([]);
   }, []);
 
-  // Handle scroll to hide/show header on mobile
+  // Handle scroll to hide/show header on mobile and toggle Back to Top
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
     
-    // Buffer to prevent jitter
+    // Back to top visibility
+    setShowBackToTop(currentScrollY > 400);
+
+    // Buffer to prevent jitter for header
     if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
 
-    // Always show at top
+    // Always show header at top
     if (currentScrollY < 20) {
       setShowHeader(true);
     } else {
@@ -306,10 +311,11 @@ const App: React.FC = () => {
         </header>
 
         <main 
+          ref={mainRef}
           className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth pb-32"
           onScroll={handleScroll}
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto relative">
             
             <StatsPanel 
               stats={stats} 
@@ -540,6 +546,19 @@ const App: React.FC = () => {
                             <div ref={loaderRef} className="py-8 flex flex-col items-center justify-center text-slate-400">
                                <Loader2 className="w-6 h-6 animate-spin mb-2" />
                                <span className="text-xs font-medium">Loading more items...</span>
+                            </div>
+                        )}
+                        
+                        {/* Back to Top Button for Sheet Mode */}
+                        {viewMode === 'sheet' && showBackToTop && (
+                            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+                                <button 
+                                    onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                                    className="pointer-events-auto bg-slate-900/90 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2 text-sm font-bold hover:bg-slate-800 transition-all animate-in fade-in slide-in-from-bottom-4 hover:scale-105 active:scale-95 border border-slate-700/50"
+                                >
+                                    <ArrowUp size={16} className="text-blue-400" />
+                                    Back to Top
+                                </button>
                             </div>
                         )}
                     </>
