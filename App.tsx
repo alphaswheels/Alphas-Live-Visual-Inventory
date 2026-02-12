@@ -74,7 +74,9 @@ const App: React.FC = () => {
   const loaderRef = useRef<HTMLDivElement>(null);
 
   // Scroll / Header State
+  const [showHeader, setShowHeader] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const lastScrollY = useRef(0);
   const mainRef = useRef<HTMLElement>(null);
 
   const loadData = async (isBackground = false) => {
@@ -123,10 +125,32 @@ const App: React.FC = () => {
     setMultiIds([]);
   }, []);
 
-  // Handle scroll for Back to Top visibility
+  // Handle scroll to hide/show header on mobile and toggle Back to Top
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
+    
+    // Back to top visibility
     setShowBackToTop(currentScrollY > 400);
+
+    // Calculate Scroll Direction & Delta
+    const scrollDelta = currentScrollY - lastScrollY.current;
+
+    // Buffer to prevent jitter for header (Bounce protection)
+    if (Math.abs(scrollDelta) < 10) return;
+
+    if (currentScrollY < 50) {
+      // Always show near top
+      setShowHeader(true);
+    } else {
+       // Hide if scrolling down, Show if scrolling up
+       if (scrollDelta > 0) {
+          setShowHeader(false);
+       } else {
+          setShowHeader(true);
+       }
+    }
+
+    lastScrollY.current = currentScrollY;
   };
 
   useEffect(() => {
@@ -266,7 +290,12 @@ const App: React.FC = () => {
       <div className={`flex-1 flex flex-col h-full overflow-hidden transition-all duration-300`}>
         
         <header 
-          className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 shadow-sm"
+          className={`
+            bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10 sticky top-0 shadow-sm
+            transition-all duration-300 ease-in-out
+            ${!showHeader ? '-mt-[80px] opacity-0 pointer-events-none' : 'mt-0 opacity-100'}
+            md:mt-0 md:opacity-100 md:pointer-events-auto
+          `}
         >
            <div className="flex items-center gap-3">
              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm transition-colors ${isAdmin ? 'bg-slate-800 shadow-slate-300' : 'bg-blue-600 shadow-blue-200'}`}>
