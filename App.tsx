@@ -470,12 +470,12 @@ const App: React.FC = () => {
                                                 <PartNumber id={item.id} className="text-[10px] md:text-xs px-1.5 py-0.5" iconSize={12} />
                                                 
                                                 {/* Mobile Status Badge */}
-                                                <span className={`md:hidden px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold uppercase border tracking-tight ${
+                                                <span className={`md:hidden px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold border tracking-tight ${
                                                     item.status === 'In Stock' ? 'bg-green-50 text-green-700 border-green-200' :
                                                     item.status === 'Low Stock' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                     'bg-red-50 text-red-700 border-red-200'
                                                 }`}>
-                                                    {item.status === 'Out of Stock' ? 'OUT' : item.status === 'Low Stock' ? 'LOW' : 'IN'}
+                                                    {item.status}
                                                 </span>
 
                                                 {item.partNumber && item.partNumber !== item.id && (
