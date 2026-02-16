@@ -552,8 +552,8 @@ const App: React.FC = () => {
                             </div>
                         )}
                         
-                        {/* Back to Top Button for Sheet and List Mode */}
-                        {(viewMode === 'sheet' || viewMode === 'list') && showBackToTop && (
+                        {/* Back to Top Button for ALL Modes */}
+                        {showBackToTop && (
                             <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
                                 <button 
                                     onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
