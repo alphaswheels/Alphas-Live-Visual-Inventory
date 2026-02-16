@@ -1,6 +1,7 @@
 import { InventoryItem, InventoryStats, ColumnMapping } from '../types';
 
 const DEFAULT_SHEET_ID = '10VF9Yk-r9pINttngYz8MNXFk-ujPAvvOukF7Ypf4LBg';
+const IMAGE_SHEET_ID = '1c4oVkTjlyxVG3eopQyx5lW6ozWLSRe3hoTFagTOqty0';
 
 // Helper to extract ID from URL
 const extractSheetId = (input: string): string => {
@@ -49,16 +50,13 @@ function parseCSVLine(line: string): string[] {
   return result;
 }
 
-export const fetchInventory = async (
-  sheetSource: string = DEFAULT_SHEET_ID, 
-  mapping?: Partial<ColumnMapping>
-): Promise<InventoryItem[]> => {
-  try {
+// Unified fetch function for any Google Sheet
+const fetchSheetData = async (sheetSource: string): Promise<string> => {
     const sheetId = extractSheetId(sheetSource);
     let text = '';
     let fetchSuccess = false;
 
-    // Strategy 1: Try local Vercel API (Best for production/CORS)
+    // Strategy 1: Local Vercel API (Best for production/CORS)
     try {
         const response = await fetch(`/api/inventory?sheetId=${sheetId}`, {
             method: 'GET',
@@ -76,7 +74,7 @@ export const fetchInventory = async (
             }
         }
     } catch (e) {
-        console.warn("API fetch failed, falling back...", e);
+        console.warn(`API fetch failed for ${sheetId}, falling back...`, e);
     }
 
     // Strategy 2: Direct GVIZ fetch (Works if browser allows or extension installed)
@@ -90,7 +88,7 @@ export const fetchInventory = async (
                  fetchSuccess = true;
              }
          } catch (e) {
-             console.warn("Direct fetch failed, falling back to proxy...", e);
+             console.warn(`Direct fetch failed for ${sheetId}, falling back to proxy...`, e);
          }
     }
 
@@ -105,15 +103,56 @@ export const fetchInventory = async (
                 fetchSuccess = true;
             }
         } catch (e) {
-            console.error("All fetch strategies failed", e);
+            console.error(`All fetch strategies failed for ${sheetId}`, e);
         }
     }
 
     if (!fetchSuccess || !text) {
-        throw new Error("Unable to load inventory data from any source.");
+        throw new Error(`Unable to load data from source ${sheetId}.`);
     }
     
-    const lines = text.split('\n').filter(line => line.trim() !== '');
+    return text;
+};
+
+export const fetchInventory = async (
+  sheetSource: string = DEFAULT_SHEET_ID, 
+  mapping?: Partial<ColumnMapping>
+): Promise<InventoryItem[]> => {
+  try {
+    // Parallel fetch: Main Inventory Sheet AND Image Sheet
+    const [mainCsv, imageCsv] = await Promise.all([
+        fetchSheetData(sheetSource),
+        fetchSheetData(IMAGE_SHEET_ID).catch(e => {
+            console.warn("Image sheet fetch failed (non-critical):", e);
+            return ""; 
+        })
+    ]);
+
+    // --- Process Image Sheet ---
+    // Map: Normalized Part Number -> Image URL
+    const imageMap = new Map<string, string>();
+    if (imageCsv) {
+        const imageLines = imageCsv.split('\n').filter(line => line.trim() !== '');
+        // Assuming Row 1 is header, start from index 1
+        for (let i = 1; i < imageLines.length; i++) {
+            const cols = parseCSVLine(imageLines[i]);
+            if (cols.length >= 2) {
+                // Column A (0) = Part Number
+                // Column B (1) = Image URL
+                const partNum = cols[0].trim();
+                const url = cols[1].trim();
+                
+                if (partNum && url) {
+                    // Key Normalization: Remove spaces, lowercase to match loosely
+                    const key = partNum.toLowerCase().replace(/[\s_-]/g, '');
+                    if (key) imageMap.set(key, url);
+                }
+            }
+        }
+    }
+    
+    // --- Process Main Inventory Sheet ---
+    const lines = mainCsv.split('\n').filter(line => line.trim() !== '');
     
     if (lines.length < 2) return [];
 
@@ -147,7 +186,7 @@ export const fetchInventory = async (
     // Updated keywords to include 'title'
     const idxDetails = resolveIndex(mapping?.productDetails, ['description', 'name', 'details', 'desc', 'title', 'producttitle'], 3); // Default D
     
-    // Visuals
+    // Visuals (From main sheet)
     const idxImage = resolveIndex(mapping?.productImage, ['image', 'url', 'photo', 'picture'], -1);
 
     // Live Inventory
@@ -215,8 +254,24 @@ export const fetchInventory = async (
         }
       }
 
-      // Visuals
-      let imageUrl = getVal(idxImage);
+      // Visuals - Priority: 1. Image Sheet Match, 2. Main Sheet Column
+      let imageUrl = '';
+      
+      // Normalize IDs for matching
+      const normPn = partNumber.toLowerCase().replace(/[\s_-]/g, '');
+      const normSku = sku.toLowerCase().replace(/[\s_-]/g, '');
+      const normId = id.toLowerCase().replace(/[\s_-]/g, '');
+      
+      // Try exact matches in order
+      if (normPn && imageMap.has(normPn)) imageUrl = imageMap.get(normPn)!;
+      else if (normSku && imageMap.has(normSku)) imageUrl = imageMap.get(normSku)!;
+      else if (normId && imageMap.has(normId)) imageUrl = imageMap.get(normId)!;
+      
+      // Fallback to main sheet if no match found
+      if (!imageUrl) {
+         imageUrl = getVal(idxImage);
+      }
+
       if (imageUrl && !imageUrl.startsWith('http')) imageUrl = '';
 
       // Inventory
