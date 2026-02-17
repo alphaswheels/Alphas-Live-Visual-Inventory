@@ -375,7 +375,13 @@ export const fetchInventory = async (
       // 6. Specific Blacklist (User Requested)
       const blacklist = [
           "au1622x105x112+2166.6glossblack",
-          "pa0122x9.55x112et26cb66.6blackmachinedface"
+          "pa0122x9.55x112et26cb66.6blackmachinedface",
+          "sr820x9.55x115+15cb71.5mattblack",
+          "sr820x115x115+18cb71.5mattblack",
+          "sr820x9.55x115+15cb71.5glossblack",
+          "sr820x115x115+18cb71.5glossblack",
+          "sr820x115x115-4.5cb71.5glossblack",
+          "sr820x115x115-4.5cb71.5mattblack"
       ];
 
       // Check ID
