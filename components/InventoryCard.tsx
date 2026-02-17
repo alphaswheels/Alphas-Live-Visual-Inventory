@@ -1,16 +1,19 @@
 import React from 'react';
 import { InventoryItem } from '../types';
-import { MapPin, ImageOff, Layers, Calendar } from 'lucide-react';
+import { MapPin, ImageOff, Layers, Calendar, ZoomIn } from 'lucide-react';
 import PartNumber from './PartNumber';
+import { getOptimizedImageUrl } from '../services/imageOptimizer';
 
 interface InventoryCardProps {
   item: InventoryItem;
   isAdmin?: boolean;
+  onImageClick: (url: string) => void;
 }
 
 const InventoryCard: React.FC<InventoryCardProps> = React.memo(({ 
   item, 
-  isAdmin = false
+  isAdmin = false,
+  onImageClick
 }) => {
   const statusColors = {
     'In Stock': 'bg-green-100 text-green-700 border-green-200',
@@ -19,6 +22,9 @@ const InventoryCard: React.FC<InventoryCardProps> = React.memo(({
   }[item.status];
 
   const containerClass = 'bg-white border-slate-200';
+
+  // Get the optimized thumbnail URL (approx 200-250px)
+  const thumbnail = getOptimizedImageUrl(item.imageUrl, 'thumb');
 
   return (
     <div className={`${containerClass} rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col h-full group relative border`}>
@@ -39,9 +45,24 @@ const InventoryCard: React.FC<InventoryCardProps> = React.memo(({
 
         {/* Image & Main Info */}
         <div className="flex gap-4 mb-4">
-           <div className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group/image">
-             {item.imageUrl ? (
-               <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain mix-blend-multiply p-1" />
+           {/* Image Container */}
+           <div 
+             className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group/image cursor-zoom-in"
+             onClick={() => item.imageUrl && onImageClick(item.imageUrl)}
+           >
+             {thumbnail ? (
+               <>
+                 <img 
+                    src={thumbnail} 
+                    alt={item.name} 
+                    loading="lazy"
+                    className="w-full h-full object-contain mix-blend-multiply p-1 transition-transform duration-300 group-hover/image:scale-110" 
+                 />
+                 {/* Hover Overlay */}
+                 <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
+                    <ZoomIn size={16} className="text-slate-600" />
+                 </div>
+               </>
              ) : (
                <ImageOff size={20} className="text-slate-300" />
              )}

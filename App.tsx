@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, Suspense, useRef, useCallback } from 'react';
 import { InventoryItem, InventoryStats, ColumnMapping, SortField, SortOrder } from './types';
 import { fetchInventory, calculateStats } from './services/inventoryService';
+import { getOptimizedImageUrl } from './services/imageOptimizer';
 import SearchControls from './components/SearchControls';
 import InventoryCard from './components/InventoryCard';
 import PartNumber from './components/PartNumber';
@@ -8,6 +9,7 @@ import StatsPanel from './components/StatsPanel';
 import SettingsModal from './components/SettingsModal';
 import ModelRibbon from './components/ModelRibbon';
 import ErrorBoundary from './components/ErrorBoundary';
+import ImageModal from './components/ImageModal';
 import { 
   AlertCircle, Package, LayoutGrid, List, Table,
   Database, ArrowUp, ArrowDown, FilterX, Loader2, ImagePlus, Shield
@@ -38,6 +40,9 @@ const App: React.FC = () => {
     }
   });
   
+  // Image Modal State
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   useEffect(() => { 
     localStorage.setItem('isAdmin', String(isAdmin)); 
   }, [isAdmin]);
@@ -274,10 +279,15 @@ const App: React.FC = () => {
   const isFilterActive = quickFilter !== 'ALL' || selectedModel !== null;
 
   const renderImageCell = (item: InventoryItem) => {
+    const thumbnail = getOptimizedImageUrl(item.imageUrl, 'thumb');
+    
     return (
-      <div className={`w-10 h-10 rounded bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group`}>
-          {item.imageUrl ? (
-              <img src={item.imageUrl} className="w-full h-full object-contain p-1" />
+      <div 
+        className={`w-10 h-10 rounded bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group cursor-zoom-in`}
+        onClick={() => item.imageUrl && setSelectedImage(item.imageUrl)}
+      >
+          {thumbnail ? (
+              <img src={thumbnail} className="w-full h-full object-contain p-1" loading="lazy" />
           ) : (
               <ImagePlus size={16} className="text-slate-300" />
           )}
@@ -438,6 +448,7 @@ const App: React.FC = () => {
                                 key={item.uniqueId} 
                                 item={item} 
                                 isAdmin={isAdmin}
+                                onImageClick={(url) => setSelectedImage(url)}
                               />
                             ))}
                           </div>
@@ -589,6 +600,12 @@ const App: React.FC = () => {
           />
         </Suspense>
       </ErrorBoundary>
+
+      {/* Image Modal */}
+      <ImageModal 
+         imageUrl={selectedImage} 
+         onClose={() => setSelectedImage(null)} 
+      />
 
       <SettingsModal 
          isOpen={showSettings}
