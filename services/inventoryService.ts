@@ -372,6 +372,20 @@ export const fetchInventory = async (
           return false;
       }
 
+      // 6. Specific Blacklist (User Requested)
+      const blacklist = [
+          "au1622x105x112+2166.6glossblack",
+          "pa0122x9.55x112et26cb66.6blackmachinedface"
+      ];
+
+      // Check ID
+      if (blacklist.includes(lowerId)) return false;
+      
+      // Check Part Number if exists
+      if (item.partNumber && blacklist.includes(item.partNumber.toLowerCase().trim())) {
+          return false;
+      }
+
       return true;
     });
 
