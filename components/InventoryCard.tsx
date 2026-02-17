@@ -1,6 +1,6 @@
 import React from 'react';
 import { InventoryItem } from '../types';
-import { MapPin, ImageOff, Layers, Calendar, ZoomIn } from 'lucide-react';
+import { MapPin, ImageOff, Layers, Calendar } from 'lucide-react';
 import PartNumber from './PartNumber';
 import { getOptimizedImageUrl } from '../services/imageOptimizer';
 
@@ -47,22 +47,16 @@ const InventoryCard: React.FC<InventoryCardProps> = React.memo(({
         <div className="flex gap-4 mb-4">
            {/* Image Container */}
            <div 
-             className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group/image cursor-zoom-in"
+             className="w-20 h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group/image cursor-pointer"
              onClick={() => item.imageUrl && onImageClick(item.imageUrl)}
            >
              {thumbnail ? (
-               <>
-                 <img 
-                    src={thumbnail} 
-                    alt={item.name} 
-                    loading="lazy"
-                    className="w-full h-full object-contain mix-blend-multiply p-1 transition-transform duration-300 group-hover/image:scale-110" 
-                 />
-                 {/* Hover Overlay */}
-                 <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
-                    <ZoomIn size={16} className="text-slate-600" />
-                 </div>
-               </>
+               <img 
+                  src={thumbnail} 
+                  alt={item.name} 
+                  loading="lazy"
+                  className="w-full h-full object-contain mix-blend-multiply p-1" 
+               />
              ) : (
                <ImageOff size={20} className="text-slate-300" />
              )}

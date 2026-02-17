@@ -283,7 +283,7 @@ const App: React.FC = () => {
     
     return (
       <div 
-        className={`w-10 h-10 rounded bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group cursor-zoom-in`}
+        className={`w-10 h-10 rounded bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group cursor-pointer`}
         onClick={() => item.imageUrl && setSelectedImage(item.imageUrl)}
       >
           {thumbnail ? (
